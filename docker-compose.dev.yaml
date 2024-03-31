@@ -1,0 +1,61 @@
+version: "3"
+
+services:
+  api:
+    container_name: api
+    build:
+      context: ../admin-panel
+      dockerfile: ./Dockerfile
+    command: npm run start:dev
+    ports:
+      - "5200:5200"
+    networks:
+      - dev
+    restart: unless-stopped
+    environment:
+      - PORT=5200
+      - POSTGRES_HOST=postgres
+      - POSTGRES_USER=admin
+      - POSTGRES_DB=mws
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_PORT=5432
+      - SECRET=VERYSECRET
+    volumes:
+      - ../admin-panel/src:/usr/src/app/src
+      - /usr/src/app/node_modules
+    depends_on:
+      - postgres
+
+  postgres:
+    container_name: postgres
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_DB: mws
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - dev
+
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: pgadmin@mws.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:5433"
+    networks:
+      - dev
+
+networks:
+  dev:
+    driver: bridge
+
+volumes:
+  pgdata:
+    driver: local
